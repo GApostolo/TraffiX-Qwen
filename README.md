@@ -9,6 +9,7 @@
 **TraffiX-Qwen** is a multimodal model for traffic video understanding, introduced as the baseline for the [**TUMTraf VideoQA**](https://openreview.net/forum?id=Yfoi5O68rf) benchmark.  
 
 
+
 ## Quick Start
 
 ### Dataset Structure
@@ -23,7 +24,9 @@ TUMTrafficQA/
 ├── TUMTraf_ViedeoQAs_train.json
 └── TUMTraf_ViedeoQAs_valtest.json
 ```
-
+### Dataset Registration and Downloads 
+  To obtain the pretrained checkpoints required for license plate and face detection, please register and request access at [**TUMTraffic Dataset**](https://a9-dataset.innovation-mobility.com/register).  
+  
 ### Installation
 
 1. Clone the repository:
