@@ -12,6 +12,9 @@
 
 ## Quick Start
 
+### TUMTraffic Dataset Registration and Downloads 
+  To obtain the pretrained checkpoints required for license plate and face detection, please register and request access at [**TUMTraffic Dataset**](https://a9-dataset.innovation-mobility.com/register).  
+  
 ### Dataset Structure
 
 Prepare your dataset under `TUMTrafficQA/` as follows:
@@ -24,9 +27,7 @@ TUMTrafficQA/
 ├── TUMTraf_ViedeoQAs_train.json
 └── TUMTraf_ViedeoQAs_valtest.json
 ```
-### Dataset Registration and Downloads 
-  To obtain the pretrained checkpoints required for license plate and face detection, please register and request access at [**TUMTraffic Dataset**](https://a9-dataset.innovation-mobility.com/register).  
-  
+
 ### Installation
 
 1. Clone the repository:
