@@ -11,6 +11,9 @@ bitsandbytes==0.41.0
 opencv-python==4.8.1.78
 Pillow==10.0.1
 decord==0.6.0
+wandb
+datasets
+tyro
 #av==10.0.0
 
 # Data processing and evaluation
