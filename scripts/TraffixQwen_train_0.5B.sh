@@ -35,7 +35,7 @@ BASE_RUN_NAME="${BASE_RUN_NAME//\//-}"
 echo "BASE_RUN_NAME: ${BASE_RUN_NAME}"
 
 # Start distributed training
-ACCELERATE_CPU_AFFINITY=0 torchrun --nproc_per_node=4 --nnodes=1 --node_rank=0 --rdzv_endpoint=0.0.0.0:29531 \
+ACCELERATE_CPU_AFFINITY=0 torchrun --nproc_per_node=1 --nnodes=1 --node_rank=0 --rdzv_endpoint=0.0.0.0:29531 \
     llava/train/train_mem.py \
     --deepspeed scripts/zero2.json \
     --model_name_or_path ${CKPT_PATH} \
@@ -57,7 +57,7 @@ ACCELERATE_CPU_AFFINITY=0 torchrun --nproc_per_node=4 --nnodes=1 --node_rank=0 -
     --bf16 True \
     --run_name $BASE_RUN_NAME \
     --output_dir "saved_weights/${BASE_RUN_NAME}" \
-    --num_train_epochs 1 \
+    --num_train_epochs 3 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 4 \
     --gradient_accumulation_steps 2 \
@@ -78,6 +78,6 @@ ACCELERATE_CPU_AFFINITY=0 torchrun --nproc_per_node=4 --nnodes=1 --node_rank=0 -
     --torch_compile True \
     --torch_compile_backend "inductor" \
     --dataloader_drop_last True \
-    --frames_upbound 101 \
+    --frames_upbound 64 \
     --report_to "wandb" \
     --video_token_selection ${VIDEO_TOKEN_SELECTION} 
