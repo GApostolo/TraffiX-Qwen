@@ -227,6 +227,7 @@ def main(args):
     for i in tqdm(range(0, len(args.prompt), args.batch_size), desc="Processing"):
         try:
             data_batch = args.prompt[i:i + args.batch_size]
+            print(data_batch)
             batch_results = process_batch(data_batch, data_args, model, tokenizer, device, data_collator)
             result.append(batch_results[0])
         except Exception as e:
