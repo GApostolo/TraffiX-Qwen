@@ -8,6 +8,7 @@ from llava.constants import IMAGE_TOKEN_INDEX
 from llava.conversation import conv_templates
 import argparse
 from typing import Dict
+import tempfile
 import os
 import json
 import torch
@@ -222,14 +223,17 @@ def main(args):
     model.eval()
     data_args.image_processor = image_processor
     data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
-    try:
-        data_batch = [args.prompt]
-        batch_results = process_batch(data_batch, data_args, model, tokenizer, device, data_collator)
-    except Exception as e:
-        print(f"Error executing rompt")
-    finally:
-        torch.cuda.empty_cache()
-    return batch_results[0]
+    result = []
+    for i in tqdm(range(0, len(args.prompt), args.batch_size), desc="Processing"):
+        try:
+            data_batch = args.prompt[i:i + args.batch_size]
+            batch_results = process_batch(data_batch, data_args, model, tokenizer, device, data_collator)
+            result.append(batch_results[0])
+        except Exception as e:
+            print(f"Error executing rompt")
+        finally:
+            torch.cuda.empty_cache()
+        return result
 
 
 if __name__ == '__main__':
@@ -254,5 +258,6 @@ if __name__ == '__main__':
 
     result = main(args)
 
-    # send back to parent process
-    print(json.dumps(result))
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        json.dump(result, f)
+        print(f.name)
