@@ -275,8 +275,8 @@ if __name__ == '__main__':
 
     result = main(args)
 
-    if args.output_file:
-        with open(args.output_file, "w") as f:
+    if args.output:
+        with open(args.output, "w") as f:
             for r in result:
                 json.dump(r, f)
                 f.write("\n")  # JSONL
