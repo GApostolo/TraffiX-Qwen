@@ -247,7 +247,7 @@ def main(args):
             for r in results:
                 json_str = json.dumps(r, ensure_ascii=False)
                 f.write(json_str + "\n")  # JSONL
-        print(args.output_file)  # parent reads this
+        print(args.output)  # parent reads this
 
     return results
 
@@ -280,4 +280,4 @@ if __name__ == '__main__':
             for r in result:
                 json.dump(r, f)
                 f.write("\n")  # JSONL
-        print(args.output_file)  # parent reads this path
+        print(args.output)  # parent reads this path
