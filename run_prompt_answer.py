@@ -195,10 +195,13 @@ def main(args):
     parser = HfArgumentParser(DataArguments)
     data_args = parser.parse_dict(filtered_args_dict)[0]
     setattr(data_args, "mm_use_im_start_end", args_dict.get("mm_use_im_start_end", False))
+
     torch.cuda.set_device(0)
-    device = torch.device(f"cuda:0")
+    device = torch.device("cuda:0")
     llava_model_args = {"multimodal": True}
     torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+
+    # Load model once
     if args.lora_path is not None:
         tokenizer, model, image_processor, max_length = load_pretrained_model(
             args.lora_path,
@@ -219,22 +222,34 @@ def main(args):
             attn_implementation="sdpa",
             **llava_model_args
         )
+
     model.to(device)
     model.eval()
     data_args.image_processor = image_processor
     data_collator = DataCollatorForSupervisedDataset(tokenizer=tokenizer)
-    result = []
+
+    results = []
+
+    # Process in batches
     for i in tqdm(range(0, len(args.prompt), args.batch_size), desc="Processing"):
+        data_batch = args.prompt[i:i + args.batch_size]
         try:
-            data_batch = args.prompt[i:i + args.batch_size]
-            print(data_batch)
             batch_results = process_batch(data_batch, data_args, model, tokenizer, device, data_collator)
-            result.append(batch_results[0])
+            results.extend(batch_results)  # append all batch results
         except Exception as e:
-            print(f"Error executing rompt")
+            print(f"Error executing prompt: {e}")
         finally:
             torch.cuda.empty_cache()
-        return result
+
+    # Write results to the output file provided by Experts
+    if args.output:
+        with open(args.output, "w") as f:
+            for r in results:
+                json_str = json.dumps(r, ensure_ascii=False)
+                f.write(json_str + "\n")  # JSONL
+        print(args.output_file)  # parent reads this
+
+    return results
 
 
 if __name__ == '__main__':
@@ -247,6 +262,7 @@ if __name__ == '__main__':
     parser.add_argument("--lora-path", type=str, default=None)
     parser.add_argument("--prompt", type=str, required=True)
     parser.add_argument("--video-folder", type=str, default="./TUMTrafficQA/raw_videos")
+    parser.add_argument("--output", type=str, default=None)
     parser.add_argument("--frames-upbound", type=int, default=101)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--device", type=str, default="cuda")
@@ -259,6 +275,9 @@ if __name__ == '__main__':
 
     result = main(args)
 
-    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
-        json.dump(result, f)
-        print(f.name)
+    if args.output_file:
+        with open(args.output_file, "w") as f:
+            for r in result:
+                json.dump(r, f)
+                f.write("\n")  # JSONL
+        print(args.output_file)  # parent reads this path
