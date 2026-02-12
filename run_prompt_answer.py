@@ -153,7 +153,16 @@ def process_batch(data_batch, data_args, model, tokenizer, device, data_collator
         num_workers=0
     )
     results = []
-    for batch in data_loader:
+    loader_iter = iter(data_loader)
+
+    while True:
+        torch.cuda.synchronize()
+        start = time.perf_counter()
+
+        try:
+            batch = next(loader_iter)
+        except StopIteration:
+            break
         input_ids = batch["input_ids"].to(device)
         attention_mask = batch["attention_mask"].to(device)
         image_tensors = [img_tensor.half().to(device) for img_tensor in batch["images"]]
@@ -173,6 +182,9 @@ def process_batch(data_batch, data_args, model, tokenizer, device, data_collator
             key_frames=key_frames
         )
         decoded_texts = tokenizer.batch_decode(generated_texts['sequences'], skip_special_tokens=True)
+        torch.cuda.synchronize()
+        end = time.perf_counter()
+        execution_time = (end - start) * 1000
         for idx, data_item in enumerate(data_batch):
             print("Question:", data_item['conversations'][0]['value'], " Answer: ", decoded_texts[idx])
             results.append({
@@ -180,7 +192,9 @@ def process_batch(data_batch, data_args, model, tokenizer, device, data_collator
                 'question': data_item['conversations'][0]['value'],
                 'answer': decoded_texts[idx],
                 'gt_answer': data_item["gt_answer"],
-                'question_type': data_item['type']
+                'question_type': data_item['type'],
+                'execution_time': (execution_time / len(data_batch)),
+                'batch_time': execution_time
             })
     return results
 
