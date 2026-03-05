@@ -1,3 +1,4 @@
 TUMTrafficQA
 *.pyc
 */__pycache__
+/venv/
