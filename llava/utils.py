@@ -3,6 +3,8 @@ import logging
 import logging.handlers
 import os
 import sys
+import time
+
 import numpy as np
 
 import requests
@@ -20,6 +22,7 @@ from decord import VideoReader, cpu
 
 
 def process_video_with_decord(video_file, data_args):
+    start = time.perf_counter()
     vr = VideoReader(video_file, ctx=cpu(0), num_threads=1)
     total_frame_num = len(vr)
     video_time = total_frame_num / vr.get_avg_fps()
@@ -38,6 +41,8 @@ def process_video_with_decord(video_file, data_args):
     
     num_frames_to_sample = num_frames = len(frame_idx)
     vr.seek(0)
+    end = time.perf_counter()
+    print(f"Video Decoder time = {(end-start)*1000}")
     
     return video, video_time, frame_time, num_frames_to_sample, frame_idx, frame_time_norm
 
