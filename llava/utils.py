@@ -103,16 +103,25 @@ def process_video_with_av(video_file, data_args):
     return video, video_time, frame_time, num_frames_to_sample, frame_idx, frame_time_norm
 
 
+def _dist_initialized():
+    return (
+        hasattr(dist, "is_available")
+        and dist.is_available()
+        and hasattr(dist, "is_initialized")
+        and dist.is_initialized()
+    )
+
+
 def rank0_print(*args):
-    if dist.is_initialized():
+    if _dist_initialized():
         if dist.get_rank() == 0:
-            print(f"Rank {dist.get_rank()}: ", *args)
+            print(f"Rank 0: ", *args)
     else:
         print(*args)
 
 
 def rank_print(*args):
-    if dist.is_initialized():
+    if _dist_initialized():
         print(f"Rank {dist.get_rank()}: ", *args)
     else:
         print(*args)
