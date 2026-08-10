@@ -16,10 +16,9 @@ import copy
 import numpy as np
 from tqdm import tqdm
 import math
-from decord import VideoReader, cpu
 from llava.train.train import DataArguments, LazySupervisedDataset, DataCollatorForSupervisedDataset, \
     preprocess_multimodal, preprocess, _add_speaker_and_signal, _tokenize_fn, _mask_targets
-from llava.utils import process_video_with_decord
+from llava.utils import process_video_with_av
 import transformers
 from transformers import HfArgumentParser
 from llava import conversation as conversation_lib
@@ -93,7 +92,7 @@ class LazySupervisedDatasetEval(LazySupervisedDataset):
             if not os.path.exists(video_file):
                 print(f"File {video_file} not exist!")
             try:
-                video, video_time, frame_time, num_frames_to_sample, video_frame_idx, frame_time_norm = process_video_with_decord(
+                video, video_time, frame_time, num_frames_to_sample, video_frame_idx, frame_time_norm = process_video_with_av(
                     video_file, self.data_args)
                 processor = self.data_args.image_processor
                 image = processor.preprocess(video, return_tensors="pt")["pixel_values"]
@@ -223,7 +222,7 @@ def main(args):
             "llava_qwen_lora",
             device_map=None,
             torch_dtype=torch_dtype,
-            attn_implementation="sdpa",
+            attn_implementation="eager",
             **llava_model_args
         )
     else:
@@ -233,7 +232,7 @@ def main(args):
             "llava_qwen",
             device_map=None,
             torch_dtype=torch_dtype,
-            attn_implementation="sdpa",
+            attn_implementation="eager",
             **llava_model_args
         )
 

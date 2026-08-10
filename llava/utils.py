@@ -18,9 +18,10 @@ handler = None
 
 import torch.distributed as dist
 
-from decord import VideoReader, cpu
+#from decord import VideoReader, cpu
+import av
 
-
+'''
 def process_video_with_decord(video_file, data_args):
     start = time.perf_counter()
     vr = VideoReader(video_file, ctx=cpu(0), num_threads=1)
@@ -45,6 +46,62 @@ def process_video_with_decord(video_file, data_args):
     print(f"Video Decoder time = {(end-start)*1000}")
     
     return video, video_time, frame_time, num_frames_to_sample, frame_idx, frame_time_norm
+'''
+
+
+def process_video_with_av(video_file, data_args):
+    start = time.perf_counter()
+
+    container = av.open(video_file)
+    stream = container.streams.video[0]
+
+    total_frame_num = stream.frames
+    fps = float(stream.average_rate)
+
+    if total_frame_num <= 0:
+        total_frame_num = int(float(stream.duration * stream.time_base) * fps)
+
+    video_time = total_frame_num / fps
+
+    if total_frame_num <= data_args.frames_upbound or data_args.frames_upbound <= 0:
+        frame_idx = list(range(total_frame_num))
+    else:
+        frame_idx = np.linspace(0, total_frame_num - 1, data_args.frames_upbound, dtype=int).tolist()
+
+    frame_time = [i / fps for i in frame_idx]
+
+    frame_time_norm = [i / total_frame_num for i in frame_idx]
+
+    video_frames = []
+
+    target_idx = 0
+    num_targets = len(frame_idx)
+
+    for current_idx, frame in enumerate(container.decode(stream)):
+
+        if current_idx == frame_idx[target_idx]:
+
+            video_frames.append(frame.to_ndarray(format="rgb24"))
+
+            target_idx += 1
+
+            if target_idx == num_targets:
+                break
+
+    container.close()
+
+    video = np.stack(video_frames)
+
+    frame_time = ",".join(f"{i:.2f}s" for i in frame_time)
+
+    num_frames_to_sample = len(frame_idx)
+
+    end = time.perf_counter()
+
+    print(f"Video Decoder time = {(end - start) * 1000:.2f} ms")
+
+    return video, video_time, frame_time, num_frames_to_sample, frame_idx, frame_time_norm
+
 
 def rank0_print(*args):
     if dist.is_initialized():
