@@ -276,7 +276,7 @@ if __name__ == '__main__':
     parser.add_argument("--prompt", type=str, required=True)
     parser.add_argument("--video-folder", type=str, default="./TUMTrafficQA/raw_videos")
     parser.add_argument("--output", type=str, default=None)
-    parser.add_argument("--frames-upbound", type=int, default=101)
+    parser.add_argument("--frames-upbound", type=int, default=64)
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--is-multimodal", type=bool, default=True)
